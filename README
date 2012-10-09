@@ -1,1 +1,1 @@
-A streamlined implementation of a K-Dimensional tree in Java. Supports moderately fast nearest-neighbor search.
+A streamlined implementation of a 2-dimensional kd-tree in Java. Supports moderately fast nearest-neighbor search.
