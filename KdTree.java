@@ -1,212 +1,215 @@
-/* k-Dimensional Tree to store locations so we can display only the geographic points in the inspection area */
+/**
+ * k-dimensional tree to store locations so we can display only
+ * the geographic points in the inspection area
+ */
+public class KdTree {
+  /**
+   * Top node of the tree
+   */
+  private Node root = null;
+  /**
+   * Number of nodes in the tree
+   */
+  private int  size = 0;
 
-public class KdTree 
-{
+  /**
+   * Get node with point closest to the given point by traversing tree
+   *
+   * @param p    given point
+   * @param node top node of the search tree
+   * @return Node with point closest to the given point
+   */
+  private Node getClosestNodeOrNull(Point2D p, Node node) {
+    if (node != null) {
+      if (node.point.equals(p))
+        return node;
 
-    private Node root;   //node at top of tree
-    private int size;    //number of nodes in tree
-
-    public KdTree()                               // construct an empty set of points
-    {
-        root = null;
-        size = 0;
-    }
-    
-    public boolean isEmpty()                        // is the set empty?
-    {
-        return root == null;
-    }
-    
-    public int size()                               // number of points in the set
-    {
-        return size;
-    }
-    
-    public void insert(Point p)                     // add the point p to the set
-    {
-        if (root == null)
-        {
-            root = new Node(p, new RectHV(0, 0, 1, 1), true);
-            return;
-        }
-        Node prev = null;
-        Node cur = root;
-        while (cur != null)
-        {
-            prev = cur;
-            if (cur.checkX)
-            {
-                if (cur.p.x() <= p.x())
-                    cur = cur.rt;
-                else
-                    cur = cur.lb;
-            }
-            else
-            {
-                if (cur.p.y() <= p.y())
-                    cur = cur.rt;
-                else
-                    cur = cur.lb;
-            }
-
-        }
-
-        if (p.equals(prev.p))
-            return;
-
-        if (prev.checkX)
-        {
-            if (p.x() >= prev.p.x())
-            {
-                cur = new Node(p, new RectHV(prev.p.x(), prev.rect.ymin(), 
-                                             prev.rect.xmax(), prev.rect.ymax()), 
-                                             !prev.checkX);
-                prev.rt = cur;
-            }
-            else
-            {
-                cur = new Node(p, new RectHV(prev.rect.xmin(), prev.rect.ymin(), 
-                                             prev.p.x(), prev.rect.ymax()),
-                                             !prev.checkX);
-                prev.lb = cur;
-            }
+      if (node.checkX) {
+        if (p.x() >= node.point.x()) {
+          if (node.rt != null)
+            return getClosestNodeOrNull(p, node.rt);
         }
         else
-        {
-            if (p.y() >= prev.p.y())
-            {
-                cur = new Node(p, new RectHV(prev.rect.xmin(), prev.p.y(), 
-                                             prev.rect.xmax(), prev.rect.ymax()),
-                                             !prev.checkX);
-                prev.rt = cur;
-            }
-            else
-            {
-                cur = new Node(p, new RectHV(prev.rect.xmin(), prev.rect.ymin(), 
-                                             prev.rect.xmax(), prev.p.y()),
-                                             !prev.checkX);
-                prev.lb = cur;
-            }
+          if (node.lb != null)
+            return getClosestNodeOrNull(p, node.lb);
+      }
+      else {
+        if (p.y() >= node.point.y()) {
+          if (node.rt != null)
+            return getClosestNodeOrNull(p, node.rt);
         }
+        else
+          if (node.lb != null)
+            return getClosestNodeOrNull(p, node.lb);
+      }
     }
-    
-    public boolean contains(Point p)                // does the set contain p?
-    {
-        Node cur = root;
+    return node;
+  }
 
-        while (cur != null)
-        {
-            if (p.equals(cur.p))
-                return true;
-            if (cur.rt.rect.contains(p))
-                cur = cur.rt;
-            else
-                cur = cur.lb;
-        }
-        return false;
+  /**
+   * Add the point to the set
+   *
+   * @param p point
+   */
+  public void insert(Point2D p) {
+
+    if (isEmpty()) {
+      root = new Node(p, new RectHV(0, 0, 1, 1), true);
+      size++;
+      return;
     }
-            
-    public Point nearest(Point p)    // nearest neighbor in the set to p 
-                                     //(null if set is empty)
-    {
-        if (root == null)
-            return null;
-    
-        Node prev = null; 
-        Node closest;
-        Node cur = root;
+    Node node = getClosestNodeOrNull(p, root);
 
-        // find a close point
-        while (cur != null)
-        {
-            prev = cur;
-            if (cur.checkX)
-            {
-                if (cur.p.x() <= p.x())
-                    cur = cur.rt;
-                else
-                    cur = cur.lb;
-            }
-            else
-            {
-                if (cur.p.y() <= p.y())
-                    cur = cur.rt;
-                else
-                    cur = cur.lb;
-            }
-        }
-        closest = prev;
-        closest = root;
+    if (p.equals(node.point)) return;
 
-        // search tree to find guarunteed closest point
-        double leastDist = p.distanceTo(closest.p);
-        Queue<Node> toSearch = new Queue<Node>();
-        toSearch.enqueue(root);
-
-        while (!toSearch.isEmpty())
-        {
-            cur = toSearch.dequeue();
-            if (p.distanceTo(cur.p) < leastDist)
-            {
-                closest = cur;
-                leastDist = p.distanceTo(closest.p);
-            }
-
-            if (cur.rt != null && cur.rt.rect.distanceTo(p) < leastDist)
-                toSearch.enqueue(cur.rt);
-            if (cur.lb != null && cur.lb.rect.distanceTo(p) < leastDist)
-                toSearch.enqueue(cur.lb);
-            }
-        return closest.p;
+    if (node.checkX) {
+      if (p.x() >= node.point.x()) {
+        node.rt = new Node(p,
+                           new RectHV(node.point.x(),
+                                      node.rect.ymin(),
+                                      node.rect.xmax(),
+                                      node.rect.ymax()),
+                           !node.checkX);
+      }
+      else {
+        node.lb = new Node(p,
+                           new RectHV(node.rect.xmin(),
+                                      node.rect.ymin(),
+                                      node.point.x(),
+                                      node.rect.ymax()),
+                           !node.checkX);
+      }
     }
-        
-    public Iterable<Point> range(RectHV rect)   // points in the set that are 
-                                                // in the rectangle
-    {
-        Node cur;
-        Queue<Node> toSearch = new Queue<Node>();
-        Queue<Point> inRange = new Queue<Point>();
-        
-        toSearch.enqueue(root);
-        while (!toSearch.isEmpty())
-        {
-            cur = toSearch.dequeue();
-            if (rect.contains(cur.p))
-                inRange.enqueue(cur.p);
-
-            if (cur.rt != null && rect.intersects(cur.rt.rect))
-                toSearch.enqueue(cur.rt);
-
-            if (cur.lb != null && rect.intersects(cur.lb.rect))
-                toSearch.enqueue(cur.lb);
-        }
-        return inRange;
-    }            
-
-    private class Node 
-    {
-        private Point p;        //The point
-        private RectHV rect;    //axis-aligned rectangle corresponding to node
-        private Node lb;        //Node pointer to left/bottom subtree
-        private Node rt;        //Node pointer to right/top subtree
-        private boolean checkX;
-
-        public Node(Point p, RectHV rect, boolean checkX)
-        {
-            this.p = p;
-            this.rect = rect;
-            this.lb = null;
-            this.rt = null;
-            this.checkX = checkX;
-        }
-
-        public Node(Node n)
-        {
-            this.p = n.p;
-            this.rect = n.rect;
-            this.lb = n.lb;
-            this.rt = n.rt;
-        }
+    else {
+      if (p.y() >= node.point.y()) {
+        node.rt = new Node(p,
+                           new RectHV(node.rect.xmin(),
+                                      node.point.y(),
+                                      node.rect.xmax(),
+                                      node.rect.ymax()),
+                           !node.checkX);
+      }
+      else {
+        node.lb = new Node(p,
+                           new RectHV(node.rect.xmin(),
+                                      node.rect.ymin(),
+                                      node.rect.xmax(),
+                                      node.point.y()),
+                           !node.checkX);
+      }
     }
+    size++;
+  }
+
+  /**
+   * Is set contains given point?
+   *
+   * @param point 2D-point
+   * @return true if it's contains
+   */
+  public boolean contains(Point2D point) {
+    return getClosestNodeOrNull(point, root).point.equals(point);
+  }
+
+  /**
+   * Get point nearest to the given point
+   *
+   * @param point 2D-point
+   * @return Nearest point
+   */
+  public Point2D nearest(Point2D point) {
+    if (isEmpty()) return null;
+    Node closest = getClosestNodeOrNull(point, root);
+    Node current;
+    // search tree to find guaranteed closest point
+    Queue<Node> toSearch = new Queue<Node>();
+    toSearch.enqueue(root);
+    double leastDistance = point.distanceSquaredTo(closest.point);
+    while (!toSearch.isEmpty()) {
+      current = toSearch.dequeue();
+      double currentDistance = point.distanceSquaredTo(current.point);
+      if (currentDistance < leastDistance) {
+        closest = current;
+        leastDistance = currentDistance;
+      }
+      if (current.rt != null
+          && current.rt.rect.distanceSquaredTo(point) < leastDistance)
+        toSearch.enqueue(current.rt);
+      if (current.lb != null
+          && current.lb.rect.distanceSquaredTo(point) < leastDistance)
+        toSearch.enqueue(current.lb);
+    }
+    return closest.point;
+  }
+
+  /**
+   * Get sequence of point located in the given rectangle
+   *
+   * @param rect 2D-rectangle
+   * @return sequence of points within given rectangle
+   */
+  public Iterable<Point2D> range(RectHV rect) {
+    Queue<Node> toSearch = new Queue<Node>();
+    Queue<Point2D> inRange = new Queue<Point2D>();
+    toSearch.enqueue(root);
+    while (!toSearch.isEmpty()) {
+      Node current = toSearch.dequeue();
+      if (rect.contains(current.point))
+        inRange.enqueue(current.point);
+      if (current.rt != null && rect.intersects(current.rt.rect))
+        toSearch.enqueue(current.rt);
+      if (current.lb != null && rect.intersects(current.lb.rect))
+        toSearch.enqueue(current.lb);
+    }
+    return inRange;
+  }
+
+  /**
+   * Is this set empty?
+   *
+   * @return true if empty
+   */
+  public boolean isEmpty() {
+    return size() == 0;
+  }
+
+  /**
+   * Get size of the tree
+   *
+   * @return number of points in the set
+   */
+  public int size() {
+    return size;
+  }
+
+  private static class Node {
+    /**
+     * Point
+     */
+    private Point2D point;
+    /**
+     * Axis-aligned rectangle corresponding to node
+     */
+    private RectHV  rect;
+    /**
+     * Left/bottom subtree
+     */
+    private Node    lb;
+    /**
+     * Right/top subtree
+     */
+    private Node    rt;
+    /**
+     * Coordinate to comparison. X or Y?
+     */
+    private boolean checkX;
+
+    public Node(Point2D point, RectHV rect, boolean checkX) {
+      this.point = point;
+      this.rect = rect;
+      this.lb = null;
+      this.rt = null;
+      this.checkX = checkX;
+    }
+  }
 }
-
