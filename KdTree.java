@@ -10,7 +10,7 @@ public class KdTree {
   /**
    * Number of nodes in the tree
    */
-  private int  size = 0;
+  private int size = 0;
 
   /**
    * Get node with point closest to the given point by traversing tree
@@ -108,7 +108,8 @@ public class KdTree {
    * @return true if it's contains
    */
   public boolean contains(Point2D point) {
-    return getClosestNodeOrNull(point, root).point.equals(point);
+    Node closestNode = getClosestNodeOrNull(point, root);
+    return null != closestNode && closestNode.point.equals(point);
   }
 
   /**
@@ -143,14 +144,15 @@ public class KdTree {
   }
 
   /**
-   * Get sequence of point located in the given rectangle
+   * Get sequence of points located in the given rectangle
    *
    * @param rect 2D-rectangle
    * @return sequence of points within given rectangle
    */
   public Iterable<Point2D> range(RectHV rect) {
-    Queue<Node> toSearch = new Queue<Node>();
     Queue<Point2D> inRange = new Queue<Point2D>();
+    if (size() == 0) return inRange;
+    Queue<Node> toSearch = new Queue<Node>();
     toSearch.enqueue(root);
     while (!toSearch.isEmpty()) {
       Node current = toSearch.dequeue();
@@ -182,6 +184,14 @@ public class KdTree {
     return size;
   }
 
+  /**
+   * Draw all of the points to standard draw
+   */
+  public void draw() {
+    for (Point2D point : range(new RectHV(0, 0, 1, 1)))
+      point.draw();
+  }
+
   private static class Node {
     /**
      * Point
@@ -190,15 +200,15 @@ public class KdTree {
     /**
      * Axis-aligned rectangle corresponding to node
      */
-    private RectHV  rect;
+    private RectHV rect;
     /**
      * Left/bottom subtree
      */
-    private Node    lb;
+    private Node lb;
     /**
      * Right/top subtree
      */
-    private Node    rt;
+    private Node rt;
     /**
      * Coordinate to comparison. X or Y?
      */
