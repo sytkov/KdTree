@@ -102,10 +102,10 @@ public class KdTree {
   }
 
   /**
-   * Is set contains given point?
+   * Does set contain the given point?
    *
    * @param point 2D-point
-   * @return true if it's contains
+   * @return true if it contains
    */
   public boolean contains(Point2D point) {
     Node closestNode = getClosestNodeOrNull(point, root);
